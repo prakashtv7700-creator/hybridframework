@@ -2,6 +2,8 @@ package uitests;
 
 import java.time.Duration;
 
+
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -14,93 +16,77 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class LaunchAppTest {
-	
-	WebDriver driver;
-	
-	
-	@BeforeClass
-	public void launchBrowser() {
-		ChromeOptions options = new ChromeOptions();
-		options.addArguments("--disable-notification");
-		options.addArguments("--start-maximized");
-		driver = new ChromeDriver(options);
-		driver.get("https://www.saucedemo.com/");
-	}
-	
+import base.BaseTest;
+import pageobjects.LoginPage;
+import utilities.ExcelUtils;
+
+
+public class LaunchAppTest extends BaseTest {
+
 	@Test(priority=0,enabled=true)
 	public void validateUI() {
 		String actualtitle= driver.getTitle();
 		String expectedtitle = "Swag Labs";
 		Assert.assertEquals(actualtitle, expectedtitle);
-		Assert.assertTrue(driver.findElement(By.xpath("//input[@id='user-name']")).isDisplayed());
-		Assert.assertTrue(driver.findElement(By.xpath("//input[@id='password']")).isDisplayed());
-		Assert.assertTrue(driver.findElement(By.xpath("//input[@id='login-button']")).isDisplayed());
+		Assert.assertTrue(page.isusernamedisplayed());
+		Assert.assertTrue(page.ispassworddisplayed());
+		Assert.assertTrue(page.islogindisplayed());
+		log.info("UI validated");
 	}
 	
 	
 	@Test(priority=1,enabled=true)
 	public void invalidLoginTest() {
 		driver.navigate().refresh();
-		WebElement username = driver.findElement(By.id("user-name"));
-		username.sendKeys("UserName");
-		WebElement password = driver.findElement(By.id("password"));
-		password.sendKeys("Pwd");
-		WebElement login = driver.findElement(By.id("login-button"));
-		login.click();
-		String errortext= driver.findElement(By.cssSelector("h3")).getText();
+		String username =
+                ExcelUtils.getTestData("InvalidLogin", "Username");
+        String password =
+                ExcelUtils.getTestData("InvalidLogin", "Password");
+        String expectedError =
+                ExcelUtils.getTestData("InvalidLogin", "ExpectedResult");
+        page.logintoapplication("InvalidLogin", "ExpectedResult");
+		String errortext= page.geterrrotext();
 		Assert.assertTrue(errortext.contains("Username and password do not match"));
+		log.info("invalid test success");
+		
 	}
 	
 	@Test(priority=2,enabled=true)
 	public void emptyCredentialsTest() {
 		driver.navigate().refresh();
-		WebElement login = driver.findElement(By.id("login-button"));
-		login.click();
-		String errortext= driver.findElement(By.cssSelector("h3")).getText();
+		page.clicklogin();
+		String errortext= page.geterrrotext();
 		Assert.assertTrue(errortext.contains("Username is required"));
+		log.info("empty cred test success");
 	}
 	
 	@Test(priority=3,enabled=true)
 	public void lockedUserTest() {
 		driver.navigate().refresh();
-		WebElement username = driver.findElement(By.id("user-name"));
-		username.sendKeys("locked_out_user");
-		WebElement password = driver.findElement(By.id("password"));
-		password.sendKeys("secret_sauce");
-		WebElement login = driver.findElement(By.id("login-button"));
-		login.click();
-		String errortext= driver.findElement(By.cssSelector("h3")).getText();
+		page.logintoapplication("locked_out_user", "secret_sauce");
+		String errortext= page.geterrrotext();
 		Assert.assertTrue(errortext.contains("this user has been locked out"));
+		log.info("lockeduser test success");
 	}
 	
 	@Test(priority=4,enabled=true)
 	public void login() {
 		//launch browser
 		driver.navigate().refresh();
-		WebElement username = driver.findElement(By.id("user-name"));
-		username.sendKeys("standard_user");
-		WebElement password = driver.findElement(By.id("password"));
-		password.sendKeys("secret_sauce");
-		WebElement login = driver.findElement(By.id("login-button"));
-		login.click();
-		
+		page.logintoapplication("standard_user", "secret_sauce");
 		String CurrentURL = driver.getCurrentUrl();
 		Assert.assertTrue(CurrentURL.contains("inventory"));
+		log.info("login test success");
 	}
 	
 	@Test(priority=5,enabled=true)
-	public void logiout() {
-		driver.findElement(By.id("react-burger-menu-btn")).click();
-		WebDriverWait wait = new WebDriverWait(driver,Duration.ofSeconds(10));
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("logout_sidebar_link"))).click();
+	public void logout() {
+		page.logoutapplication();
 		String CurrentURL = driver.getCurrentUrl();
 		Assert.assertTrue(CurrentURL.contains("saucedemo"));
+		log.info("logout test success");
 	}
-	@AfterClass
-	public void CloseBrowser() {
-		driver.quit();
-	}
+
 	
 	
 		

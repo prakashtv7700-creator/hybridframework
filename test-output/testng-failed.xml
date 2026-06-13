@@ -5,9 +5,9 @@
     <classes>
       <class name="uitests.LaunchAppTest">
         <methods>
-          <include name="launchBrowser"/>
-          <include name="login"/>
+          <include name="emptyCredentialsTest"/>
           <include name="CloseBrowser"/>
+          <include name="launchBrowser"/>
         </methods>
       </class> <!-- uitests.LaunchAppTest -->
     </classes>
